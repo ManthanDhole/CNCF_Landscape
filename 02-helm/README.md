@@ -46,7 +46,7 @@ helm install my-argo-cd argo/argo-cd --version 10.8.4
 
 4. Verify the installed resources using kubectl commands in the cluster
 ```
-helm list   ### check the installed charts in the cluster
+helm list -A  ### check the installed charts in the cluster in all namespaces
 
 kubectl get ns
 kubectl get all -n argo
@@ -54,7 +54,7 @@ kubectl get all -n argo
 
 5. Uninstall a release from the cluster
 ```
-helm list
+helm list 
 helm uninstall <release-name>
 helm uninstall my-argo-cd
 helm uninstall my-argo-cd -n argocd
