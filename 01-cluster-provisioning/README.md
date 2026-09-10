@@ -4,7 +4,9 @@
 #### 1. Install Docker, Kind, Kubectl 
 [Docker Installation](https://docs.docker.com/desktop/setup/install/windows-install/)
 ```
-choco install kind
+### Open Powershell in Administrator Mode
+
+choco install kind      
 choco install kubernetes-cli
 
 kind --version
