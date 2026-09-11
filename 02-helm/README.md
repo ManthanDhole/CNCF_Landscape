@@ -34,14 +34,15 @@ helm repo add <app-name>    ### Added a repo to local helm client that can be in
 ```
 helm repo add <chart-name> <repository-url>
 
-helm repo add argo https://argoproj.github.io/argo-helm
+helm repo add jenkins https://charts.jenkins.io
 helm repo update
+
 helm search repo
 
-helm install my-argo-cd argo/argo-cd    ### installs argo resources in default namespace
-helm install my-argo-cd argo/argo-cd --namespace argocd --create-namespace
+helm install my-jenkins jenkins/jenkins    ### installs jenkins resources in default namespace
+helm install my-jenkins jenkins/jenkins --namespace jenkins --create-namespace
 
-helm install my-argo-cd argo/argo-cd --version 10.8.4
+helm install my-jenkins jenkins/jenkins --version 5.9.56
 ```
 
 4. Verify the installed resources using kubectl commands in the cluster
@@ -49,15 +50,35 @@ helm install my-argo-cd argo/argo-cd --version 10.8.4
 helm list -A  ### check the installed charts in the cluster in all namespaces
 
 kubectl get ns
-kubectl get all -n argo
+kubectl get all -n jenkins
+kubectl get pods -n jenkins --watch
 ```
 
-5. Uninstall a release from the cluster
+5. Access the UI using port-forward to localhost
+```
+kubectl exec --namespace jenkins -it svc/my-jenkins -c jenkins -- cat run/secrets/additional/chart-admin-password && echo  ## Windows
+kubectl exec --namespace jenkins -it svc/my-jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo  ## Mac & Linux
+
+kubectl --namespace jenkins port-forward svc/my-jenkins 8080:8080
+```
+Create a sample Pipeline and Run it
+```
+node {
+    stage("example") {
+        sh 'ls'
+        sh 'pwd'
+        sh 'whoami'
+    }
+}
+```
+
+
+6. Uninstall a release from the cluster
 ```
 helm list 
 helm uninstall <release-name>
-helm uninstall my-argo-cd
-helm uninstall my-argo-cd -n argocd
+helm uninstall my-jenkins
+helm uninstall my-jenkins -n jenkins
 ```
 
 6. Delete if any CRD are still available in the cluster
