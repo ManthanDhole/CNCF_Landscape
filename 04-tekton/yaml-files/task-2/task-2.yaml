@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: second-task
+  namespace: test
+spec:
+  steps:
+    - name: echo-hello-message
+      image: alpine:latest
+      script: |
+        #!/bin/sh
+        echo "This is CNCF Project!"

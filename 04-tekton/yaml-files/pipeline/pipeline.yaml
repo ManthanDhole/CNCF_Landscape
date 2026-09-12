@@ -1,0 +1,14 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: hello-pipeline
+  namespace: test
+spec:
+  tasks:
+    - name: hello
+      taskRef:
+        name: hello-task
+    - name: second
+      taskRef:  
+        name: second-task
+    
