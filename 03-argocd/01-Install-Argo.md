@@ -10,8 +10,8 @@ helm repo update
 helm search repo
 
 helm install argocd argo/argo-cd 
-helm install argocd argo/argo-cd argocd --create-namespace
-helm install argocd argo/argo-cd --version 10.8.4
+helm install argocd argo/argo-cd -n argocd --create-namespace
+helm install argocd argo/argo-cd --version 10.8.4 -n argocd --create-namespace
 
 helm list -A    ## List all the installed releases in all namespaces
 ```
