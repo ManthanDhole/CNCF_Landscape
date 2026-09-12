@@ -16,7 +16,6 @@ kubectl apply -f ./yaml-files/task-1/taskrun.yaml
 
 kubectl get task -n test
 kubectl get taskRun -n test
-
 ```
 
 [Second Task](./yaml-files/task-2/task-2.yaml) <br>
