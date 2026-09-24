@@ -1,0 +1,18 @@
+# teleport-values.yaml
+clusterName: "localhost"
+
+# Use standalone mode for simple local persistence
+chartMode: standalone
+
+# Enable local authentication and web UI persistence
+proxyListenerMode: multiplex
+
+# Setup a local self-signed certificate profile
+tls:
+  existingSecretName: "local-teleport-certs"
+  
+# Configure Teleport services
+auth:
+  enabled: true
+proxy:
+  enabled: true
