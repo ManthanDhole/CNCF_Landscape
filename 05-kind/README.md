@@ -12,7 +12,6 @@ Single Node Cluster
 kind create cluster --name test-cluster
 
 kubectl config current-context      ## Shows which cluster are we connected via kubectl  
-kubectl get nodes                   ## Show how many nodes are created    
 kubectl cluster-info --context test-cluster     ## 
 ```
 
@@ -22,4 +21,16 @@ kind create cluster --config multi-node-cluster.yaml
 
 kubectl config current-context
 kubectl get nodes
+```
+
+#### 3. Kind Commands
+
+```
+kind get clusters   ## View what clusters are available
+kind get nodes      ## View which nodes are associated with the kind (default) cluster
+kind get nodes --name test-cluster      ## View which nodes are associated with the test-cluster
+```
+
+```
+kind delete cluster --name test-cluster     ## Delete cluster
 ```
