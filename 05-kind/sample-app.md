@@ -11,3 +11,15 @@ kubectl expose pod sonarqube --port=9500 --target-port=9000 --type=NodePort --na
 
 kubectl port-forward service/sonarqube-svc 9500:9500
 ```
+
+#### Create Deployment and scale Replicas 
+
+```
+kubectl create deployment nginx-deploy --image=nginx:latest
+
+kubectl scale deployment nginx-deployment --replicas=5  ## Create 5 Replicas of Nginx Pod
+kubectl scale deployment nginx-deployment --replicas=50 
+
+kubectl get pods -o wide
+kubectl get pods -o wide --sort-by='.spec.nodeName'     ## Sort Pods by Node Name
+```
