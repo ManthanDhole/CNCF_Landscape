@@ -25,6 +25,7 @@ helm upgrade my-harbor harbor/harbor \
   --reuse-values \
   --set expose.type=nodePort \
   --set expose.tls.enabled=false \
+  
   --set externalURL=http://localhost:30002
 
 kubectl rollout status deployment/my-harbor-core -n harbor
