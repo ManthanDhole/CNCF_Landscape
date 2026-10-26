@@ -78,7 +78,7 @@ spec:
 EOF
 ```
 
-5. [Creating Exceptions](./exceptions/exec-into-namespaced-pods.yaml)
+5. [Creating Exceptions](./exceptions/exec-into-namespaced-pods.yaml) <br>
 You'll need to enable the Kyverno's Policy Exception Feature before any of your exceptions applied and used. If you proceed without enabling this flag, then the expection will live in the cluster, but would not have any effect
 
 ```
