@@ -1,0 +1,17 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata: 
+  name: prevent-exec-into-containers
+  namespace: kyverno
+spec:
+  validationActions: 
+    - Deny
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CONNECT"]
+        resources: ["pods/exec"]
+  validations:
+    - expression: "false"
+      message: "Exec into Pods is prohibited"

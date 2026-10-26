@@ -1,0 +1,16 @@
+apiVersion: policies.kyverno.io/v1
+kind: PolicyException
+metadata:
+  name: allow-exec-into-namespaced-pods
+  namespace: kyverno
+spec:
+  policyRefs:
+    - name: prevent-exec-into-containers
+      kind: ValidatingPolicy
+  matchConditions:
+    - name: exemption-for-nginx-namespace-to-allow-exec
+      expression: >-
+        request.namespace == 'exempted-namespace' 
+  
+
+# request.userInfo.username == 'system:kubernetes-admin'
