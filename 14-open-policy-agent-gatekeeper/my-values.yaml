@@ -1,0 +1,240 @@
+# Default values for gatekeeper-policy-manager.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1 # How many GPM pods to run. GPM holds no state, so more than one is safe.
+
+image:
+  repository: quay.io/sighup/gatekeeper-policy-manager # Container image to run.
+  pullPolicy: IfNotPresent # When the kubelet pulls the image.
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "v2.1.2" # Image tag. Defaults to the chart's appVersion when empty.
+
+# # Override gatekeeper-policy-manager container entrypoint/args
+# # See https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/
+command: # Overrides the image entrypoint.
+# - gunicorn
+args: # Overrides the arguments passed to the entrypoint.
+# - --bind=:8080
+# - --workers=2
+# - --threads=4
+# - --worker-class=gthread
+# - app:app
+
+imagePullSecrets: [] # Secrets that hold the credentials for a private registry.
+nameOverride: "" # Replaces the chart name in the generated resource names.
+fullnameOverride: "" # Replaces the whole generated resource name.
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true # Create a ServiceAccount for GPM.
+  # Annotations to add to the service account
+  annotations: {} # Annotations for the ServiceAccount, for example a cloud IAM role.
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "gatekeeper-policy-manager" # Name of the ServiceAccount to use. Generated when empty.
+
+podAnnotations: {} # Annotations added to the GPM pods.
+
+podLabels: {} # Labels added to the GPM pods.
+
+# Specify security settings for the gatekeeper-policy-manager pod
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+podSecurityContext:
+  runAsNonRoot: true # Refuse to start the pod as root.
+
+# Set the security context for the main gatekeeper-policy-manager container,
+# which override settings made at the Pod level when there is overlap
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+# and https://kubernetes.io/docs/concepts/security/pod-security-standards/
+securityContext:
+  runAsNonRoot: true # Refuse to start the container as root.
+  privileged: false # Run the container privileged. GPM never needs this.
+  allowPrivilegeEscalation: false # Let a process gain more privileges than its parent.
+  seccompProfile:
+    type: RuntimeDefault # Seccomp profile for the container.
+  capabilities:
+    drop: # Linux capabilities to drop. GPM needs none.
+      - ALL
+
+service:
+  annotations: {} # Annotations for the Service, for example load balancer settings.
+  type: ClusterIP # Service type that exposes GPM inside the cluster.
+  port: 80 # Port the Service listens on.
+
+ingress:
+  enabled: false # Create an Ingress for GPM.
+  # ingressClassName: "nginx"
+  annotations: # Annotations for the Ingress, for example the ingress class.
+    {}
+    #kubernetes.io/ingress.class: "nginx"
+    #nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    #nginx.ingress.kubernetes.io/auth-signin: https://$host/oauth2/start?rd=https://$host$request_uri$is_args$args
+    #nginx.ingress.kubernetes.io/auth-url: https://$host/oauth2/auth
+    #nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
+    #nginx.ingress.kubernetes.io/secure-backends: "true"
+    #nginx.ingress.kubernetes.io/configuration-snippet: |
+    # auth_request_set $token $upstream_http_authorization;
+    # proxy_set_header Authorization $token;
+    #forecastle.stakater.com/expose: "true"
+    #forecastle.stakater.com/appName: "Gatekeeper Policy Manager"
+    #forecastle.stakater.com/icon: "https://raw.githubusercontent.com/sighupio/gatekeeper-policy-manager/main/docs/assets/logo.svg"
+  labels: {} # Labels for the Ingress.
+  hosts: # Hosts the Ingress answers on, with their paths.
+    - host: gpm.local
+      paths: []
+      # pathType: ImplementationSpecific
+  tls: [] # TLS certificates for the Ingress hosts.
+  #  - secretName: gpm-tls
+  #    hosts:
+  #      - gpm.local
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  requests:
+    cpu: 100m # CPU the scheduler reserves for GPM.
+    memory: 128Mi # Memory the scheduler reserves for GPM.
+  limits:
+    cpu: 500m # CPU ceiling for GPM.
+    memory: 256Mi # Memory ceiling for GPM. The pod is killed above it.
+
+nodeSelector: {} # Node labels the pod must match.
+
+tolerations: [] # Taints the pod tolerates.
+
+affinity: {} # Affinity and anti-affinity rules for the pod.
+
+topologySpreadConstraints: [] # How the pods spread over zones or nodes.
+
+config:
+  preferredURLScheme: http # Set to https when GPM is served over TLS, so the session cookie is marked Secure.
+  logLevel: info # How much GPM writes to its log.
+  # Which source components the events view shows. Leave unset to use GPM's own default,
+  # gatekeeper-webhook,gatekeeper-audit.
+  eventsSource: null # Which Gatekeeper components' events the Events view shows.
+  # Read events from this namespace only. Unset means every namespace, which needs a cluster-wide
+  # read on events. Naming one namespace moves that read into a Role in that namespace instead.
+  eventsNamespace: null # Read events from this namespace only. Every namespace when empty.
+  # The secret key, in plain text. Used by the OIDC authentication only, so it can be left unset
+  # while GPM runs unauthenticated.
+  secretKey: null # Key that signs and encrypts the session cookie. Required with OIDC.
+  # Name of an existing secret holding the secret key, as an alternative to setting it in plain
+  # text above. If set, config.secretKey must be null. Expected field in the secret: secretKey
+  secretRef: null # Name of an existing Secret holding the session key, instead of secretKey.
+  # RBAC-aligned views: each person sees the views and the objects their own Kubernetes account can
+  # read (issue #261). Needs authentication -- config.oidc or config.jwt -- and a single cluster.
+  # GPM refuses to start with this on and either missing. Your API server must also authenticate the
+  # same people: one that does not know the name GPM asks about denies it like any other, and the
+  # page then blames the reader. GPM cannot check that for you. Turning it on adds `create subjectaccessreviews` to GPM's
+  # ClusterRole, which is how it asks the API server what a user may see. It never impersonates.
+  rbacFiltering:
+    # Needs `create subjectaccessreviews`. The chart adds the rule to the ClusterRole it creates, or
+    # creates a small ClusterRole of its own when clusterRole.create is false. With rbac.create
+    # false the chart creates no RBAC, so add the rule to your own ClusterRole.
+    enabled: false # Show each person only the views and objects their Kubernetes account can read.
+    # usernameClaim is required when enabled is true: it names the claim the API server reads in
+    # --oidc-username-claim. Without it the reviews name whichever claim the token happens to carry.
+    # Set the prefixes when the API server adds --oidc-username-prefix / --oidc-groups-prefix. A
+    # mismatch denies everything: the user sees an empty page, and the chip on it shows the name GPM
+    # asked about.
+    usernameClaim: null # Required when enabled. Claim holding the username the API server knows.
+    usernamePrefix: null # Prefix the API server's --oidc-username-prefix adds, for example oidc:.
+    groupsClaim: null # Claim listing the person's groups.
+    groupsPrefix: null # Prefix the API server's --oidc-groups-prefix adds.
+
+  multiCluster:
+    enabled: false # Read more than one cluster, from the kubeconfig below.
+    kubeconfig: | # Kubeconfig naming one context per cluster GPM reads.
+      apiVersion: v1
+      clusters:
+      - cluster:
+          certificate-authority-data: REDACTED
+          server: https://127.0.0.1:54216
+        name: kind-kind
+      contexts:
+      - context:
+          cluster: kind-kind
+          user: kind-kind
+        name: kind-kind
+      current-context: kind-kind
+      kind: Config
+      preferences: {}
+      users:
+      - name: kind-kind
+        user:
+          client-certificate-data: REDACTED
+          client-key-data: REDACTED
+  # JWT authentication: an authenticating proxy such as Pomerium identifies the person, and GPM
+  # verifies the assertion it signs. There is no login page and no session, so config.secretKey is
+  # not needed. Turn on either this or config.oidc, never both.
+  jwt:
+    enabled: false # Trust a signed identity assertion from an authenticating proxy.
+    jwkSetURL: # Required. The proxy's JWKS, https only. For example https://pomerium.example.com/.well-known/pomerium/jwks.json
+    # Required. The aud claim GPM accepts, which is the host GPM is served on. A proxy signs every
+    # route with one key, so without this GPM accepts an assertion made for a different route, and
+    # a person that route allows can read GPM. For Pomerium use the bare host, with no scheme.
+    audience: # Required. The host GPM is served on, for example gpm.example.com.
+    headerName: # Header carrying the assertion. Default X-Pomerium-Jwt-Assertion. Use Authorization for oauth2-proxy.
+    issuer: # The iss claim GPM accepts. Not checked when empty. Set it when jwkSetURL points at an identity provider.
+    logoutURL: # Where the Log out button points, for example https://gpm.example.com/.pomerium/sign_out. No button when empty.
+
+  oidc:
+    enabled: false # Require a login through an OIDC provider.
+    issuer: # Issuer URL. GPM discovers the rest of the provider's configuration from it.
+    redirectDomain: # Public address of GPM. The provider sends people back to it.
+    clientID: # Client ID registered with the provider.
+    clientSecret: # Client secret, when the client is confidential.
+    # Extra scopes for the login request, separated by spaces or commas. openid, profile and email
+    # are always requested. Add the scope that carries group membership when your provider keeps it
+    # behind one (an Optional client scope in Keycloak, for example), or the groups claim never
+    # arrives and rbacFiltering sees no groups.
+    scopes: # Extra scopes for the login request. openid, profile and email are always asked for.
+    authorizationEndpoint: # Authorization endpoint. Setting any endpoint turns discovery off.
+    jwksURI: # JWKS URI. See the note on the authorization endpoint.
+    tokenEndpoint: # Token endpoint. See the note on the authorization endpoint.
+    introspectionEndpoint: # Accepted for compatibility with GPM 1.x. Not used.
+    userinfoEndpoint: # Accepted for compatibility with GPM 1.x. Not used.
+    endSessionEndpoint: # End session endpoint. A logout from GPM then ends the provider session too.
+
+# Extra env variables to pass to the gatekeeper-policy-manager container
+# Uncomment and add OIDC variables for enabling OIDC
+extraEnvs: [] # Extra environment variables for the GPM container.
+
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: true # Create the RBAC resources GPM needs to read the cluster.
+
+# If create is `false` the Helm Operator will be restricted to the namespace
+# where it is deployed, and no ClusterRole or ClusterRoleBinding will be created.
+# Additionally, the kubeconfig default context will be set to that namespace.
+clusterRole:
+  create: true # Create the ClusterRole. Turn off to bind one you manage yourself.
+  # The name of a cluster role to bind to; if not set and create is
+  # true, a name based on fullname is generated
+  name: "gatekeeper-policy-manager-crd-view" # Name of the ClusterRole to create or to bind.
+
+# Health and liveness probe configurations
+livenessProbe:
+  enabled: true # Restart the container when the liveness probe fails.
+  httpGet:
+    path: /health # Path the liveness probe requests.
+    port: http # Port the liveness probe requests.
+  initialDelaySeconds: 10 # Wait this long before the first liveness probe.
+  periodSeconds: 10 # Seconds between liveness probes.
+  timeoutSeconds: 1 # Seconds a liveness probe waits for an answer.
+  successThreshold: 1 # Successes needed to count the container as live again.
+  failureThreshold: 3 # Failures before the container is restarted.
+
+readinessProbe:
+  enabled: true # Keep the pod out of the Service until the readiness probe passes.
+  httpGet:
+    path: /health # Path the readiness probe requests.
+    port: http # Port the readiness probe requests.
+  initialDelaySeconds: 5 # Wait this long before the first readiness probe.
+  periodSeconds: 5 # Seconds between readiness probes.
+  timeoutSeconds: 1 # Seconds a readiness probe waits for an answer.
+  successThreshold: 1 # Successes needed to count the pod as ready.
+  failureThreshold: 3 # Failures before the pod is taken out of the Service.
